@@ -1,0 +1,175 @@
+//printing
+DECLARE
+CURSOR highest_salary_cursor IS
+SELECT EmpNo, Name, Salary
+FROM EMPLOYEE
+ORDER BY Salary DESC;
+emp_record highest_salary_cursor%ROWTYPE;
+BEGIN
+OPEN highest_salary_cursor;
+FOR i IN 1..3
+LOOP
+FETCH highest_salary_cursor INTO emp_record;
+dbms_output.put_line(emp_record.EmpNo || ' ' || emp_record.Name || ' ' || emp_record.Salary);
+END LOOP;
+CLOSE highest_salary_cursor;
+END;
+
+***************************************************************************
+
+DECLARE
+    CURSOR c1 IS
+        SELECT Name, Salary, Designation
+        FROM EMPLOYEE
+        WHERE Salary > 100000;
+
+   emp_record c1%ROWTYPE;
+BEGIN
+    OPEN c1;
+    LOOP
+        FETCH c1 INTO emp_record;
+        EXIT WHEN c1%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE(emp_record.Name || ' ' || emp_record.Salary || ' ' || emp_record.Designation);
+    END LOOP;
+    CLOSE c1;
+END;
+
+******************************************************
+
+
+//updation
+DECLARE
+CURSOR name_salary_cursor IS
+SELECT EmpNo, Name, Salary
+FROM EMPLOYEE
+WHERE Name = 'John Doe';
+emp_record name_salary_cursor%ROWTYPE;
+BEGIN
+OPEN name_salary_cursor;
+FETCH name_salary_cursor INTO emp_record;
+WHILE name_salary_cursor%FOUND
+LOOP
+UPDATE EMPLOYEE
+SET Salary = Salary + 5000
+WHERE EmpNo = emp_record.EmpNo;
+FETCH name_salary_cursor INTO emp_record;
+END LOOP;
+CLOSE name_salary_cursor;
+END;
+
+
+
+DECLARE
+CURSOR salary_update_cursor IS
+SELECT EmpNo, Name, Salary
+FROM EMPLOYEE
+WHERE Salary < 70000;
+emp_record salary_update_cursor%ROWTYPE;
+BEGIN
+OPEN salary_update_cursor;
+FETCH salary_update_cursor INTO emp_record;
+WHILE salary_update_cursor%FOUND
+LOOP
+UPDATE EMPLOYEE
+SET Salary = Salary * 2
+WHERE EmpNo = emp_record.EmpNo;
+FETCH salary_update_cursor INTO emp_record;
+END LOOP;
+CLOSE salary_update_cursor;
+END;
+
+
+
+//deletion
+DECLARE
+CURSOR name_delete_cursor IS
+SELECT EmpNo, Name, Salary
+FROM EMPLOYEE
+WHERE Name = 'Jane Smith';
+emp_record name_delete_cursor%ROWTYPE;
+BEGIN
+OPEN name_delete_cursor;
+FETCH name_delete_cursor INTO emp_record;
+WHILE name_delete_cursor%FOUND
+LOOP
+DELETE FROM EMPLOYEE
+WHERE EmpNo = emp_record.EmpNo;
+FETCH name_delete_cursor INTO emp_record;
+END LOOP;
+CLOSE name_delete_cursor;
+END;
+
+
+
+DECLARE
+CURSOR salary_delete_cursor IS
+SELECT EmpNo, Name, Salary
+FROM EMPLOYEE
+WHERE Salary > 100000;
+emp_record salary_delete_cursor%ROWTYPE;
+BEGIN
+OPEN salary_delete_cursor;
+FETCH salary_delete_cursor INTO emp_record;
+WHILE salary_delete_cursor%FOUND
+LOOP
+DELETE FROM EMPLOYEE
+WHERE EmpNo = emp_record.EmpNo;
+FETCH salary_delete_cursor INTO emp_record;
+END LOOP;
+CLOSE salary_delete_cursor;
+END;
+
+
+
+
+parameter passed for display to cursor
+
+***************************************
+DECLARE
+CURSOR salary_display_cursor (p_salary NUMBER) IS
+SELECT Name, Salary
+FROM EMPLOYEE
+WHERE Salary < p_salary;
+emp_record salary_display_cursor%ROWTYPE;
+BEGIN
+OPEN salary_display_cursor(80000);
+FETCH salary_display_cursor INTO emp_record;
+WHILE salary_display_cursor%FOUND
+LOOP
+DBMS_OUTPUT.PUT_LINE('Employee Name: ' || emp_record.Name || ' | Salary: ' || emp_record.Salary);
+FETCH salary_display_cursor INTO emp_record;
+END LOOP;
+CLOSE salary_display_cursor;
+END;
+
+**********************************
+
+
+
+
+
+
+
+
+
+DECLARE
+p_salary NUMBER;
+CURSOR salary_display_cursor (p_salary NUMBER) IS
+SELECT Name, Salary
+FROM EMPLOYEE
+WHERE Salary < p_salary;
+emp_record salary_display_cursor%ROWTYPE;
+BEGIN
+DBMS_OUTPUT.PUT_LINE('Enter the salary limit: ');
+p_salary:=&sal;
+OPEN salary_display_cursor(p_salary);
+FETCH salary_display_cursor INTO emp_record;
+WHILE salary_display_cursor%FOUND
+LOOP
+DBMS_OUTPUT.PUT_LINE('Employee Name: ' || emp_record.Name || ' | Salary: ' || emp_record.Salary);
+FETCH salary_display_cursor INTO emp_record;
+END LOOP;
+CLOSE salary_display_cursor;
+END;
+
+

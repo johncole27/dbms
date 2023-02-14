@@ -1,0 +1,122 @@
+Given the table EMPLOYEE (EmpNo, Name, Salary, Designation, DeptID) write a cursor to select the five highest paid employees from the table. EMPLOYEE (EmpNo, Name, Salary, Designation, DeptID).
+
+DECLARE
+CURSOR highest_salary_cursor IS
+SELECT EmpNo, Name, Salary
+FROM EMPLOYEE
+ORDER BY Salary DESC;
+emp_record highest_salary_cursor%ROWTYPE;
+BEGIN
+OPEN highest_salary_cursor;
+FOR i IN 1..3
+LOOP
+FETCH highest_salary_cursor INTO emp_record;
+dbms_output.put_line(emp_record.EmpNo || ' ' || emp_record.Name || ' ' || emp_record.Salary);
+END LOOP;
+CLOSE highest_salary_cursor;
+END;
+
+********************************************************************************8
+
+Create a table to represent sb-account of a bank consisting of account-no, customer-name, balance-amount. Write a PL/SQL block to implement deposit and withdraw. Withdraws should not be allowed if the balance goes below Rs.1000.  
+
+DECLARE
+  account_number NUMBER(10);
+  customer_name VARCHAR2(50);
+  current_balance NUMBER(10, 2);
+  deposit_amount NUMBER(10, 2);
+  withdraw_amount NUMBER(10, 2);
+BEGIN
+  -- Get the account details
+  SELECT account_no, customer_name, balance_amount
+  INTO account_number, customer_name, current_balance
+  FROM sb_account
+  WHERE account_no = &account_number;
+
+  -- Deposit operation
+  deposit_amount := &deposit_amount;
+  current_balance := current_balance + deposit_amount;
+  UPDATE sb_account
+  SET balance_amount = current_balance
+  WHERE account_no = account_number;
+
+  -- Withdraw operation
+  withdraw_amount := &withdraw_amount;
+  IF current_balance - withdraw_amount < 1000 THEN
+    DBMS_OUTPUT.PUT_LINE('Withdrawal not allowed, minimum balance should be 1000');
+  ELSE
+    current_balance := current_balance - withdraw_amount;
+    UPDATE sb_account
+    SET balance_amount = current_balance
+    WHERE account_no = account_number;
+  END IF;
+END;
+
+
+
+
+
+****************************************************************************************************
+
+Create the following tables : Book(accession-no, title, publisher, year, date-of-purchase, status) Member(member-id, name, number-of-books-issued, max-limit) Book-issue(accession-no, member-id, date-of-issue) (a) Insert  values that  to accept the data from the user with appropriate validation checks. (b) Write a PL/SQL procedure to issue the book. Write a trigger to set the status of students to "back listed" if they have taken book but not returned even after one year.
+
+
+
+
+CREATE OR REPLACE PROCEDURE issue_book (p_accession_no INT, p_member_id INT)
+AS
+l_num_books INT;
+BEGIN
+SELECT number_of_books_issued INTO l_num_books
+FROM Member
+WHERE member_id = p_member_id;
+
+IF l_num_books >= (SELECT max_limit FROM Member WHERE member_id = p_member_id) THEN
+RAISE_APPLICATION_ERROR(-20001, 'The member has reached the maximum limit for books issued');
+END IF;
+
+UPDATE Book
+SET status = 'Issued'
+WHERE accession_no = p_accession_no AND status = 'Available';
+
+INSERT INTO Book_Issue (accession_no, member_id, date_of_issue)
+VALUES (p_accession_no, p_member_id, SYSDATE);
+
+UPDATE Member
+SET number_of_books_issued = number_of_books_issued + 1
+WHERE member_id = p_member_id;
+END;
+
+
+
+
+Trigger to set the status of students to "back listed" if they have taken book but not returned even after one year:
+CREATE OR REPLACE TRIGGER trg_back_listed
+AFTER INSERT ON Book_Issue
+FOR EACH ROW
+BEGIN
+IF SYSDATE - :new.date_of_issue > 365 THEN
+UPDATE Member
+SET status = 'Back Listed'
+WHERE member_id = :new.member_id;
+END IF;
+END;
+
+*********************************************
+
+
+Create the following table : Item (item-code, item-name, qty-in-stock, reorder-level) Supplier (supplier-code, supplier-name, address, status) Can-supply(supplier-code, item-code) (a) Insert  values that  to accept the data from the user with appropriate validation checks. (b) Write PL/SQL procedure to do the following : Set the status of the supplier to "important" if the supplier can supply more than five items.
+
+
+CREATE OR REPLACE PROCEDURE set_important_supplier AS
+BEGIN
+UPDATE Supplier
+SET status = 'Important'
+WHERE supplier_code IN (
+SELECT supplier_code
+FROM Can_supply
+GROUP BY supplier_code
+HAVING COUNT(item_code) > 5
+);
+END;
+
